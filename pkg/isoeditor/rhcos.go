@@ -88,9 +88,21 @@ func embedInitrdPlaceholders(extractDir string) error {
 }
 
 func fixTemplateConfigs(rootFSURL, extractDir string) error {
+	availableGrubPaths := []string{"EFI/redhat/grub.cfg", "EFI/fedora/grub.cfg"}
+	var foundGrubPath string
+	for _, path := range availableGrubPaths {
+		if _, err := os.Stat(filepath.Join(extractDir, path)); err == nil {
+			foundGrubPath = path
+			break
+		}
+	}
+	if len(foundGrubPath) == 0 {
+		return fmt.Errorf("no grub.cfg found, possible paths are %v", availableGrubPaths)
+	}
+
 	// Add the rootfs url
 	replacement := fmt.Sprintf("$1 $2 'coreos.live.rootfs_url=%s'", rootFSURL)
-	if err := editFile(filepath.Join(extractDir, "EFI/redhat/grub.cfg"), `(?m)^(\s+linux) (.+| )+$`, replacement); err != nil {
+	if err := editFile(foundGrubPath, `(?m)^(\s+linux) (.+| )+$`, replacement); err != nil {
 		return err
 	}
 	replacement = fmt.Sprintf("$1 $2 coreos.live.rootfs_url=%s", rootFSURL)
@@ -99,7 +111,7 @@ func fixTemplateConfigs(rootFSURL, extractDir string) error {
 	}
 
 	// Remove the coreos.liveiso parameter
-	if err := editFile(filepath.Join(extractDir, "EFI/redhat/grub.cfg"), ` coreos.liveiso=\S+`, ""); err != nil {
+	if err := editFile(foundGrubPath, ` coreos.liveiso=\S+`, ""); err != nil {
 		return err
 	}
 	if err := editFile(filepath.Join(extractDir, "isolinux/isolinux.cfg"), ` coreos.liveiso=\S+`, ""); err != nil {
@@ -107,7 +119,7 @@ func fixTemplateConfigs(rootFSURL, extractDir string) error {
 	}
 
 	// Edit config to add custom ramdisk image to initrd
-	if err := editFile(filepath.Join(extractDir, "EFI/redhat/grub.cfg"), `(?m)^(\s+initrd) (.+| )+$`, fmt.Sprintf("$1 $2 %s", ramDiskImagePath)); err != nil {
+	if err := editFile(foundGrubPath, `(?m)^(\s+initrd) (.+| )+$`, fmt.Sprintf("$1 $2 %s", ramDiskImagePath)); err != nil {
 		return err
 	}
 	if err := editFile(filepath.Join(extractDir, "isolinux/isolinux.cfg"), `(?m)^(\s+append.*initrd=\S+) (.*)$`, fmt.Sprintf("${1},%s ${2}", ramDiskImagePath)); err != nil {
