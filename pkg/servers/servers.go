@@ -16,12 +16,12 @@ type ServerInfo struct {
 	HasBothHandlers bool
 }
 
-func New(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string, handler http.Handler) *ServerInfo {
+func New(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string, handler *http.Handler) *ServerInfo {
 	servers := ServerInfo{}
 	if port := runHTTPSOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile); port != "" {
 		servers.HTTPS = &http.Server{
 			Addr:    fmt.Sprintf(":%s", port),
-			Handler: handler,
+			Handler: *handler,
 		}
 		servers.HTTPSCertFile = HTTPSCertFile
 		servers.HTTPSKeyFile = HTTPSKeyFile
@@ -29,7 +29,7 @@ func New(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string, handler http.H
 	if port := runHTTPOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile); port != "" {
 		servers.HTTP = &http.Server{
 			Addr:    fmt.Sprintf(":%s", port),
-			Handler: handler,
+			Handler: *handler,
 		}
 	}
 	return &servers

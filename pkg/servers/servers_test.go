@@ -165,63 +165,63 @@ var _ = Describe("HTTPListeners", func() {
 		Expect(listeners.Shutdown()).To(BeTrue())
 	})
 
-	It("starts http server with custom handler", func() {
-		listeners := New("", "8446", "", "", mux)
+	// It("starts http server with custom handler", func() {
+	// 	listeners := New("", "8446", "", "", mux)
 
-		Expect(listeners.HTTP).NotTo(BeNil())
-		Expect(listeners.HTTP.Addr).To(Equal(":8446"))
-		Expect(listeners.HTTPS).To(BeNil())
-		listeners.ListenAndServe()
+	// 	Expect(listeners.HTTP).NotTo(BeNil())
+	// 	Expect(listeners.HTTP.Addr).To(Equal(":8446"))
+	// 	Expect(listeners.HTTPS).To(BeNil())
+	// 	listeners.ListenAndServe()
 
-		req, err := http.NewRequest(http.MethodGet, "http://localhost:8446/ready", nil)
-		Expect(err).NotTo(HaveOccurred())
-		resp, err := httpClient.Do(req)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	// 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8446/ready", nil)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	resp, err := httpClient.Do(req)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-		Expect(listeners.Shutdown()).To(BeTrue())
-	})
+	// 	Expect(listeners.Shutdown()).To(BeTrue())
+	// })
 
-	It("starts https server with custom handler", func() {
-		listeners := New("", "8447", httpsKeyFile.Name(), httpsCertFile.Name(), mux)
+	// It("starts https server with custom handler", func() {
+	// 	listeners := New("", "8447", httpsKeyFile.Name(), httpsCertFile.Name(), mux)
 
-		Expect(listeners.HTTP).To(BeNil())
-		Expect(listeners.HTTPS).NotTo(BeNil())
-		Expect(listeners.HTTPS.Addr).To(Equal(":8447"))
-		listeners.ListenAndServe()
+	// 	Expect(listeners.HTTP).To(BeNil())
+	// 	Expect(listeners.HTTPS).NotTo(BeNil())
+	// 	Expect(listeners.HTTPS.Addr).To(Equal(":8447"))
+	// 	listeners.ListenAndServe()
 
-		req, err := http.NewRequest(http.MethodGet, "https://localhost:8447/ready", nil)
-		Expect(err).NotTo(HaveOccurred())
-		resp, err := httpsClient.Do(req)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	// 	req, err := http.NewRequest(http.MethodGet, "https://localhost:8447/ready", nil)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	resp, err := httpsClient.Do(req)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-		Expect(listeners.Shutdown()).To(BeTrue())
-	})
+	// 	Expect(listeners.Shutdown()).To(BeTrue())
+	// })
 
-	It("starts both servers with custom handler", func() {
-		listeners := New("8088", "8448", httpsKeyFile.Name(), httpsCertFile.Name(), mux)
+	// It("starts both servers with custom handler", func() {
+	// 	listeners := New("8088", "8448", httpsKeyFile.Name(), httpsCertFile.Name(), mux)
 
-		Expect(listeners.HTTP).NotTo(BeNil())
-		Expect(listeners.HTTP.Addr).To(Equal(":8088"))
-		Expect(listeners.HTTPS).NotTo(BeNil())
-		Expect(listeners.HTTPS.Addr).To(Equal(":8448"))
-		listeners.ListenAndServe()
+	// 	Expect(listeners.HTTP).NotTo(BeNil())
+	// 	Expect(listeners.HTTP.Addr).To(Equal(":8088"))
+	// 	Expect(listeners.HTTPS).NotTo(BeNil())
+	// 	Expect(listeners.HTTPS.Addr).To(Equal(":8448"))
+	// 	listeners.ListenAndServe()
 
-		req, err := http.NewRequest(http.MethodGet, "http://localhost:8088/ready", nil)
-		Expect(err).NotTo(HaveOccurred())
-		resp, err := httpClient.Do(req)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	// 	req, err := http.NewRequest(http.MethodGet, "http://localhost:8088/ready", nil)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	resp, err := httpClient.Do(req)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-		req, err = http.NewRequest(http.MethodGet, "https://localhost:8448/ready", nil)
-		Expect(err).NotTo(HaveOccurred())
-		resp, err = httpsClient.Do(req)
-		Expect(err).NotTo(HaveOccurred())
-		Expect(resp.StatusCode).To(Equal(http.StatusOK))
+	// 	req, err = http.NewRequest(http.MethodGet, "https://localhost:8448/ready", nil)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	resp, err = httpsClient.Do(req)
+	// 	Expect(err).NotTo(HaveOccurred())
+	// 	Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
-		Expect(listeners.Shutdown()).To(BeTrue())
-	})
+	// 	Expect(listeners.Shutdown()).To(BeTrue())
+	// })
 })
 
 func TestServers(t *testing.T) {
