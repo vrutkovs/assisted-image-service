@@ -113,15 +113,14 @@ func main() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	// Run listen on http and https ports if HTTPSCertFile/HTTPSKeyFile set
-	serverInfo := servers.New(Options.HTTPListenPort, Options.ListenPort, Options.HTTPSKeyFile, Options.HTTPSCertFile)
-	if serverInfo.HasBothHandlers {
-		// Make sure we filter requests when both http+https ports are open
-		// Allow only pxe-initrd via HTTP in imageHandler
+	// Add WithInitrd middleware when running HTTP and HTTPS servers simultaneously
+	if servers.WillRunBothHandlers(Options.HTTPListenPort, Options.ListenPort, Options.HTTPSKeyFile, Options.HTTPSCertFile) {
 		imageHandler = handlers.WithInitrdViaHTTP(imageHandler)
 	}
 	http.Handle("/images/", imageHandler)
 
+	// Run listen on http and https ports if HTTPSCertFile/HTTPSKeyFile set
+	serverInfo := servers.New(Options.HTTPListenPort, Options.ListenPort, Options.HTTPSKeyFile, Options.HTTPSCertFile, nil)
 	serverInfo.ListenAndServe()
 	<-stop
 	serverInfo.Shutdown()

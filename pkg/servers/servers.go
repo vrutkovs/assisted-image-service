@@ -16,31 +16,48 @@ type ServerInfo struct {
 	HasBothHandlers bool
 }
 
-func New(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string) *ServerInfo {
+func New(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string, handler http.Handler) *ServerInfo {
 	servers := ServerInfo{}
-	if httpsPort != "" && HTTPSKeyFile != "" && HTTPSCertFile != "" {
-		// Run HTTPS listener when port, key and cert are specified
-		// This is default in operator deployments
+	if port := runHTTPSOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile); port != "" {
 		servers.HTTPS = &http.Server{
-			Addr: fmt.Sprintf(":%s", httpsPort),
+			Addr:    fmt.Sprintf(":%s", port),
+			Handler: handler,
 		}
 		servers.HTTPSCertFile = HTTPSCertFile
 		servers.HTTPSKeyFile = HTTPSKeyFile
-	} else if httpPort == "" {
+	}
+	if port := runHTTPOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile); port != "" {
+		servers.HTTP = &http.Server{
+			Addr:    fmt.Sprintf(":%s", port),
+			Handler: handler,
+		}
+	}
+	return &servers
+}
+
+func runHTTPOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string) string {
+	if (httpsPort == "" || HTTPSKeyFile == "" && HTTPSCertFile == "") && httpPort == "" {
 		// Run HTTP listener on HTTPS port if httpPort is not set
 		// This is default in podman deployment
-		servers.HTTP = &http.Server{
-			Addr: fmt.Sprintf(":%s", httpsPort),
-		}
+		return httpsPort
 	}
 	if httpPort != "" {
-		// Run HTTP listener if httpPort is set
-		servers.HTTP = &http.Server{
-			Addr: fmt.Sprintf(":%s", httpPort),
-		}
+		return httpPort
 	}
-	servers.HasBothHandlers = servers.HTTP != nil && servers.HTTPS != nil
-	return &servers
+	return ""
+}
+
+func runHTTPSOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string) string {
+	if httpsPort != "" && HTTPSKeyFile != "" && HTTPSCertFile != "" {
+		return httpsPort
+	}
+	return ""
+}
+
+func WillRunBothHandlers(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile string) bool {
+	httpHandlerPort := runHTTPOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile)
+	httpsHandlerPort := runHTTPSOnPort(httpPort, httpsPort, HTTPSKeyFile, HTTPSCertFile)
+	return httpHandlerPort != "" && httpsHandlerPort != ""
 }
 
 func shutdown(name string, server *http.Server) {
